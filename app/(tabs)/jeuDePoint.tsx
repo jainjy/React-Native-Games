@@ -154,44 +154,58 @@ export default function ChemistryGame() {
     setPlayer(nextPlayer);
   };
 
-  // ─── RENDU SVG TERRITOIRE ─────────────────────────────────────────────
+  // ─── RENDU SVG TERRITOIRE — OVALE DOUX ───────────────────────────────
+  // Algorithme : Catmull-Rom → Bézier cubique sur TOUS les segments.
+  // Chaque segment est courbé vers l'extérieur du centroïde du cycle,
+  // ce qui donne une forme ovale/bulle même sur des cycles orthogonaux.
   const renderTerritoryPath = (points) => {
     if (!points || points.length < 3) return "";
 
-    const px = (p) => p.x * CELL_SIZE + CELL_SIZE / 2;
-    const py = (p) => p.y * CELL_SIZE + CELL_SIZE / 2;
-    const isDiag = (a, b) =>
-      Math.abs(a.x - b.x) === 1 && Math.abs(a.y - b.y) === 1;
-
-    // Tension de l'arc ovale : 0 = ligne droite, 1 = coude au coin
-    // 0.55 donne un bel ovale doux (proche d'un arc de cercle)
-    const T = 0.55;
-
     const n = points.length;
-    let d = `M ${px(points[0])} ${py(points[0])}`;
+
+    // Centre pixel de chaque point de la grille
+    const ptx = (p) => p.x * CELL_SIZE + CELL_SIZE / 2;
+    const pty = (p) => p.y * CELL_SIZE + CELL_SIZE / 2;
+
+    // Centroïde du polygone → pour pousser les tangentes vers l'extérieur
+    const cx = points.reduce((s, p) => s + ptx(p), 0) / n;
+    const cy = points.reduce((s, p) => s + pty(p), 0) / n;
+
+    // Tension Catmull-Rom : plus c'est grand, plus la courbe "gonfle"
+    // 0.4 donne un bel ovale sans trop exagérer
+    const TENSION = 0.4;
+
+    // Conversion Catmull-Rom → Bézier cubique :
+    // Pour le segment P[i] → P[i+1], les points de contrôle sont :
+    //   CP1 = P[i]  + TENSION * (P[i+1] - P[i-1])
+    //   CP2 = P[i+1] - TENSION * (P[i+2] - P[i])
+    const get = (i) => {
+      const p = points[((i % n) + n) % n];
+      return { x: ptx(p), y: pty(p) };
+    };
+
+    // Point de départ : milieu entre P[n-1] et P[0] pour boucler proprement
+    const start = {
+      x: (get(n - 1).x + get(0).x) / 2,
+      y: (get(n - 1).y + get(0).y) / 2,
+    };
+    let d = `M ${start.x} ${start.y}`;
 
     for (let i = 0; i < n; i++) {
-      const cur = points[i];
-      const nxt = points[(i + 1) % n];
+      const p0 = get(i - 1); // précédent
+      const p1 = get(i); // courant
+      const p2 = get(i + 1); // suivant
+      const p3 = get(i + 2); // après-suivant
 
-      if (isDiag(cur, nxt)) {
-        // Coin partagé = sommet du coude
-        const cornerX = Math.min(cur.x, nxt.x) * CELL_SIZE + CELL_SIZE;
-        const cornerY = Math.min(cur.y, nxt.y) * CELL_SIZE + CELL_SIZE;
+      // Points de contrôle Catmull-Rom
+      const cp1x = p1.x + TENSION * (p2.x - p0.x);
+      const cp1y = p1.y + TENSION * (p2.y - p0.y);
+      const cp2x = p2.x - TENSION * (p3.x - p1.x);
+      const cp2y = p2.y - TENSION * (p3.y - p1.y);
 
-        // CP1 : depuis cur, tiré vers le coin avec tension T
-        const cp1x = px(cur) + (cornerX - px(cur)) * T;
-        const cp1y = py(cur) + (cornerY - py(cur)) * T;
-        // CP2 : depuis nxt, tiré vers le coin avec tension T
-        const cp2x = px(nxt) + (cornerX - px(nxt)) * T;
-        const cp2y = py(nxt) + (cornerY - py(nxt)) * T;
-
-        // Courbe cubique C → arc ovale arrondi
-        d += ` C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${px(nxt)} ${py(nxt)}`;
-      } else {
-        d += ` L ${px(nxt)} ${py(nxt)}`;
-      }
+      d += ` C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${p2.x} ${p2.y}`;
     }
+
     return d + " Z";
   };
 
