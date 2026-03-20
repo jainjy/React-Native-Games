@@ -84,7 +84,7 @@ export default function ChemistryGame() {
     newGrid[y][x] = player;
 
     // Détecte si ce coup crée un encerclement
-    const result = detectCapture(newGrid, x, y, player, capturedSet);
+    const result = detectCapture(newGrid, x, y, player);
 
     let newCapturedSet = new Set(capturedSet);
     let newTerritories = [...territories];
@@ -399,7 +399,7 @@ export default function ChemistryGame() {
  * comme maillons du chemin. Les points morts (P1_DEAD / P2_DEAD) sont
  * ignorés lors du parcours, donc ils ne peuvent plus fermer un cycle.
  */
-function detectCapture(grid, startX, startY, player, alreadyCaptured) {
+function detectCapture(grid, startX, startY, player) {
   const opponent = player === P1 ? P2 : P1;
   const DIRS = [
     [1, 0],
@@ -471,19 +471,15 @@ function detectCapture(grid, startX, startY, player, alreadyCaptured) {
 
   if (!foundCycle) return { cycle: null, newlyCapturedPoints: [] };
 
-  // Cherche les points adverses VIVANTS encerclés
+  // Source de vérité = valeur dans la grille.
+  // cell === opponent (P1 ou P2 exactement) → vivant, capturable.
+  // P1_DEAD (3) et P2_DEAD (4) → déjà morts, IGNORÉS complètement.
+  // On n'utilise plus alreadyCaptured ici : si la grille dit DEAD, c'est DEAD.
   const newlyCaptured = [];
   grid.forEach((row, y) =>
     row.forEach((cell, x) => {
-      // On cherche uniquement les points adverses vivants (pas DEAD)
-      if (cell === opponent) {
-        const ptKey = `${x},${y}`;
-        if (
-          !alreadyCaptured.has(ptKey) &&
-          isPointInPoly({ x, y }, foundCycle)
-        ) {
-          newlyCaptured.push(ptKey);
-        }
+      if (cell === opponent && isPointInPoly({ x, y }, foundCycle)) {
+        newlyCaptured.push(`${x},${y}`);
       }
     }),
   );
