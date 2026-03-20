@@ -24,136 +24,47 @@ export default function TabLayout() {
         },
       }}
     >
-      {/* 1. HOME - Profil John Doe */}
+      <Tabs.Screen
+        name="FanoronaFinal"
+        options={{
+          title: "Fanorona final",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="grid" color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="index"
         options={{
-          title: "Profil",
+          title: "accueil",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.fill" color={color} />
+            <IconSymbol size={28} name="grid" color={color} />
           ),
         }}
       />
 
-      {/* 2. GRID - Chiffres aléatoires */}
       <Tabs.Screen
-        name="grid"
+        name="Chimestry"
         options={{
-          title: "Grille",
+          title: "Jeu Chimie 2",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="square.grid.3x3.fill" color={color} />
+            <IconSymbol size={28} name="basket.fill" color={color} />
           ),
         }}
       />
-
-      {/* 3. EXPLORE - Calendrier dynamique */}
       <Tabs.Screen
-        name="explore"
+        name="jeuDePoint"
         options={{
-          title: "Calendrier",
+          title: "Jeu de Point",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="calendar" color={color} />
-          ),
-        }}
-      />
-
-      {/* 4. CHAT - Discussion avec Jane Doe */}
-      <Tabs.Screen
-        name="chat"
-        options={{
-          title: "Chat",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={28}
-              name="bubble.left.and.bubble.right.fill"
-              color={color}
-            />
-          ),
-        }}
-      />
-
-      {/* 5. SETTINGS - Cartes de statistiques/paramètres */}
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Réglages",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="gearshape.fill" color={color} />
-          ),
-        }}
-      />
-
-      {/* 6. MAGIC NUMBER */}
-      <Tabs.Screen
-        name="Magic-number"
-        options={{
-          title: "Nombre magic",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="number" color={color} />
-          ),
-        }}
-      />
-
-      {/* 8. NOUVEAU JEU MEMORY */}
-      <Tabs.Screen
-        name="memory"
-        options={{
-          title: "Mémoire",
-          tabBarIcon: ({ color }) => (
-            // Utilise 'brain' si dispo, sinon 'puzzlepiece' ou autre
-            <IconSymbol size={28} name="brain.head.profile" color={color} />
+            <IconSymbol size={28} name="basket.fill" color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="fanorona"
         options={{
-          title: "Fanorona 3",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="grid" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="Couleurmagique"
-        options={{
-          title: "couleur magique",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="grid" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="PanierGame"
-        options={{
-          title: "jeu de Panier",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="basket.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="fanorona_9"
-        options={{
-          title: "Fanorona 9",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="basket.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="chimestryGame"
-        options={{
-          title: "Jeu Chimie 1",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="basket.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="Chimestry"
-        options={{
-          title: "Jeu Chimie 2",
+          title: "Jeu Fanorona",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="basket.fill" color={color} />
           ),
