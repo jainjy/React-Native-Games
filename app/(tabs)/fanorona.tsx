@@ -4,7 +4,7 @@
  * Architecture: logique → useFanorona hook, UI → composants séparés
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -49,9 +49,27 @@ export default function fanorona() {
     pieceHints,
     setHints,
     setVictims,
+    performAIMove,
+    isAiThinking,
   } = useFanorona();
 
   const [showRules, setShowRules] = useState(false);
+  const [mode, setMode] = useState<"PVP" | "PVAI">("PVP");
+  const AI_PLAYER = DARK;
+
+  useEffect(() => {
+    if (mode !== "PVAI") return;
+    if (gameOver) return;
+    if (player !== AI_PLAYER) return;
+    if (pendingChoice) return;
+    if (isAiThinking) return;
+    performAIMove();
+  }, [mode, gameOver, player, pendingChoice, isAiThinking, performAIMove]);
+
+  const displayMessage =
+    mode === "PVAI" && player === AI_PLAYER && !gameOver
+      ? "🤖 IA réfléchit..."
+      : message;
 
   return (
     <ImageBackground
@@ -93,7 +111,7 @@ export default function fanorona() {
           {/* ── SCORES ── */}
           <View style={S.scoreRow}>
             <ScoreCard
-              label="Rouge"
+              label={mode === "PVAI" ? "Joueur" : "Rouge"}
               count={board.flat().filter((c) => c === RED).length}
               wins={scores.red}
               dotColor="#D4503A"
@@ -113,7 +131,7 @@ export default function fanorona() {
               )}
             </View>
             <ScoreCard
-              label="Noir"
+              label={mode === "PVAI" ? "IA" : "Noir"}
               count={board.flat().filter((c) => c === DARK).length}
               wins={scores.dark}
               dotColor="#C0C0C0"
@@ -121,12 +139,36 @@ export default function fanorona() {
             />
           </View>
 
+          {/* ── MODE ── */}
+          <View style={S.modeRow}>
+            <TouchableOpacity
+              style={[S.modeBtn, mode === "PVP" && S.modeBtnActive]}
+              onPress={() => setMode("PVP")}
+              activeOpacity={0.8}
+            >
+              <Text style={[S.modeTxt, mode === "PVP" && S.modeTxtActive]}>
+                P1 vs P2
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[S.modeBtn, mode === "PVAI" && S.modeBtnActive]}
+              onPress={() => setMode("PVAI")}
+              activeOpacity={0.8}
+            >
+              <Text style={[S.modeTxt, mode === "PVAI" && S.modeTxtActive]}>
+                Joueur vs IA
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {/* ── MESSAGE ── */}
           <View style={[S.msg, gameOver && S.msgWin]}>
             {gameOver && (
               <Text style={S.msgCrown}>{winner === RED ? "🔴" : "⚫"}</Text>
             )}
-            <Text style={[S.msgTxt, gameOver && S.msgTxtWin]}>{message}</Text>
+            <Text style={[S.msgTxt, gameOver && S.msgTxtWin]}>
+              {displayMessage}
+            </Text>
           </View>
 
           {/* ── PLATEAU ── */}
@@ -139,7 +181,9 @@ export default function fanorona() {
               hints={hints}
               victims={victims}
               capturingSet={capturingSet}
-              onPress={handlePress}
+              onPress={
+                mode === "PVAI" && player === AI_PLAYER ? () => {} : handlePress
+              }
             />
           </View>
 
@@ -283,6 +327,41 @@ const S = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 6,
     elevation: 3,
+  },
+
+  // Mode
+  modeRow: {
+    flexDirection: "row",
+    gap: 10,
+    width: "100%",
+    marginBottom: 10,
+  },
+  modeBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(200,160,60,0.3)",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modeBtnActive: {
+    borderColor: "#FFD700",
+    backgroundColor: "rgba(255,215,0,0.12)",
+    shadowColor: "#FFD700",
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  modeTxt: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "rgba(200,175,120,0.9)",
+    letterSpacing: 0.4,
+  },
+  modeTxtActive: {
+    color: "#FFD700",
   },
 
   // Message

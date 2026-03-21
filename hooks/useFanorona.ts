@@ -35,6 +35,33 @@ export interface ChainInfo {
   type: string;
 }
 
+// ─── BOT IA ───────────────────────────────────────────────────────────────
+const scoreMove = (board: Board, player: Player, move: Move) => {
+  const nb = applyMove(board, move.from, move.to, move.captured);
+  const oppCaps = allCaptureMoves(nb, opp(player));
+  const oppMax = oppCaps.reduce((m, x) => Math.max(m, x.captured.length), 0);
+  const captureScore = move.captured.length * 10;
+  const riskPenalty = oppMax * 6;
+  const typeBonus = move.type === "paika" ? 0 : 2;
+  return captureScore + typeBonus - riskPenalty;
+};
+
+const pickBestMove = (board: Board, player: Player, moves: Move[]) => {
+  let best = moves[0];
+  let bestScore = scoreMove(board, player, best);
+  for (let i = 1; i < moves.length; i++) {
+    const m = moves[i];
+    const s = scoreMove(board, player, m);
+    if (s > bestScore) {
+      best = m;
+      bestScore = s;
+    }
+  }
+  return best;
+};
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 // ─── HELPERS GÉOMÉTRIE ─────────────────────────────────────────────────────
 export const key = (c: number, r: number) => `${c},${r}`;
 export const inBounds = (c: number, r: number) =>
@@ -264,6 +291,7 @@ export function useFanorona() {
   const [scores, setScores] = useState({ red: 0, dark: 0 });
   const [history, setHistory] = useState<Move[]>([]);
   const [winner, setWinner] = useState<Player | null>(null);
+  const [isAiThinking, setIsAiThinking] = useState(false);
 
   const globalHints = useCallback((b: Board, pl: Player) => {
     const caps = allCaptureMoves(b, pl);
@@ -455,8 +483,6 @@ export function useFanorona() {
         const caps = allCaptureMoves(board, player);
         const pks = caps.length === 0 ? allPaikaMoves(board, player) : [];
         const pieceCaps = caps.filter((m) => m.from[0] === c && m.from[1] === r);
-        const piecePks = pks.filter((m) => m.from[0] === pc && m.from[1] === pr);
-        // fix: use c,r not pc,pr
         const piecePksFixed = pks.filter((m) => m.from[0] === c && m.from[1] === r);
         if (caps.length > 0 && pieceCaps.length === 0) {
           setMessage("⚠️ Capture obligatoire ! Choisissez une pièce avec halo orange.");
@@ -569,11 +595,74 @@ export function useFanorona() {
     setMessage("🔴 Rouge commence !");
   }, [globalHints]);
 
+  const performAIMove = useCallback(async () => {
+    if (gameOver || isAiThinking) return;
+    if (pendingChoice || phase === "continue") return;
+    setIsAiThinking(true);
+    try {
+      let nb = board;
+      const AI_DELAY = 450;
+      const caps = allCaptureMoves(nb, player);
+      const moves = caps.length > 0 ? caps : allPaikaMoves(nb, player);
+      if (moves.length === 0) {
+        endTurn(nb);
+        return;
+      }
+
+      let move = pickBestMove(nb, player, moves);
+      nb = applyMove(nb, move.from, move.to, move.captured);
+      setBoard(nb);
+      setHistory((h) => [...h.slice(-19), move]);
+      await sleep(AI_DELAY);
+
+      if (move.type !== "paika") {
+        let lastMove = move;
+        let lastDC = lastMove.to[0] - lastMove.from[0];
+        let lastDR = lastMove.to[1] - lastMove.from[1];
+        let lastType = lastMove.type;
+        while (true) {
+          const cont = getContinuations(
+            nb,
+            lastMove.to[0],
+            lastMove.to[1],
+            player,
+            lastDC,
+            lastDR,
+            lastType
+          );
+          if (cont.length === 0) break;
+          const next = pickBestMove(nb, player, cont);
+          nb = applyMove(nb, next.from, next.to, next.captured);
+          setBoard(nb);
+          setHistory((h) => [...h.slice(-19), next]);
+          await sleep(AI_DELAY);
+          lastMove = next;
+          lastDC = lastMove.to[0] - lastMove.from[0];
+          lastDR = lastMove.to[1] - lastMove.from[1];
+          lastType = lastMove.type;
+        }
+      }
+
+      endTurn(nb);
+    } finally {
+      setIsAiThinking(false);
+    }
+  }, [
+    board,
+    player,
+    gameOver,
+    isAiThinking,
+    pendingChoice,
+    phase,
+    endTurn,
+  ]);
+
   return {
     board, player, selected, phase, hints, victims, capturingSet,
     pendingChoice, setPendingChoice, contMoves, chainInfo,
     gameOver, winner, message, scores, history,
     handlePress, doCapture, endTurn, resetGame,
     pieceHints, setHints, setVictims,
+    performAIMove, isAiThinking,
   };
 }

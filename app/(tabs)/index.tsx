@@ -40,7 +40,7 @@ export default function HomeScreen() {
               style={styles.buttonPoints}
               onPress={() => router.push("/jeuDePoint")}
             >
-              <Text style={styles.buttonText}>Jeu de Points</Text>
+              <Text style={styles.buttonText}>Jeu de Points(faritany)</Text>
             </TouchableOpacity>
           </View>
         </View>
