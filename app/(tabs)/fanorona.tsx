@@ -28,7 +28,7 @@ import {
   HistoryPanel,
 } from "../../components/FanoronaUI";
 
-export default function FanoronaScreen() {
+export default function fanorona() {
   const {
     board,
     player,

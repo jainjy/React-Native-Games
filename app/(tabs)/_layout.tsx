@@ -25,15 +25,6 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="FanoronaFinal"
-        options={{
-          title: "Fanorona final",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="grid" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="index"
         options={{
           title: "accueil",
@@ -43,15 +34,6 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen
-        name="Chimestry"
-        options={{
-          title: "Jeu Chimie 2",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="basket.fill" color={color} />
-          ),
-        }}
-      />
       <Tabs.Screen
         name="jeuDePoint"
         options={{
